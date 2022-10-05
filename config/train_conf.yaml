@@ -1,0 +1,10 @@
+model: 
+  CNN: 
+    in_size:
+    out_size:
+  encoder:
+
+  decoder:
+
+dataset:
+  path: ./data/train
