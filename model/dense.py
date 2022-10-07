@@ -5,7 +5,7 @@ from collections import OrderedDict
 
 class _DenseLayer(nn.Sequential):
     def __init__(self, num_input_features, growth_rate, bn_size, drop_rate):
-        super(_DenseLayer, self).__init__()
+        super().__init__()
         self.add_module('norm1', nn.BatchNorm2d(num_input_features)),
         self.add_module('relu1', nn.ReLU(inplace=True)),
         self.add_module('conv1', nn.Conv2d(num_input_features, bn_size *
@@ -25,7 +25,7 @@ class _DenseLayer(nn.Sequential):
 
 class _DenseBlock(nn.Sequential):
     def __init__(self, num_layers, num_input_features, bn_size, growth_rate, drop_rate):
-        super(_DenseBlock, self).__init__()
+        super().__init__()
         for i in range(num_layers):
             layer = _DenseLayer(num_input_features + i * growth_rate, growth_rate, bn_size, drop_rate)
             self.add_module('denselayer%d' % (i + 1), layer)
@@ -33,7 +33,7 @@ class _DenseBlock(nn.Sequential):
 
 class _Transition(nn.Sequential):
     def __init__(self, num_input_features, num_output_features):
-        super(_Transition, self).__init__()
+        super().__init__()
         self.add_module('norm', nn.BatchNorm2d(num_input_features))
         self.add_module('relu', nn.ReLU(inplace=True))
         self.add_module('conv', nn.Conv2d(num_input_features, num_output_features,
@@ -45,7 +45,7 @@ class DenseNet(nn.Module):
     def __init__(self, growth_rate=32, block_config=(6, 12, 24, 16),
                  num_init_features=64, bn_size=4, drop_rate=0, num_classes=1000):
 
-        super(DenseNet, self).__init__()
+        super().__init__()
 
         # First convolution
         self.features = nn.Sequential(OrderedDict([
