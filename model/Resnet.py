@@ -39,7 +39,8 @@ class _conv1x3x1(nn.Module):
     def forward(self, x):
         y = nn.functional.relu(self.features(x) + x if self.conv1x1 == NULL else self.conv1x1(x))
         return y
-        
+
+
 class Resnet(nn.Module):
     def __init__(self, init_channel = 64, block_config:Tuple = (), deep:bool = False) -> None:
         super().__init__()
@@ -56,7 +57,11 @@ class Resnet(nn.Module):
             channels *= 2
             self.features.add_module("block%d" % i, block)
 
+        self.features.add_module("avgpool", nn.AdaptiveAvgPool2d(1,1))
+
+        self.fcn1000 = nn.Linear(512*(3*deep+1), 1000)
 
     def forward(self, x):
-        
-        pass
+        x = self.features(x)
+        x = self.fcn1000(torch.flatten(x, 1))
+        return x
