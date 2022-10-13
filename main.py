@@ -4,6 +4,7 @@ import argparse
 import yaml
 from utils.dataset_builder import build_dataset
 from utils.model_builder import build_model
+from utils.criterion_builder import build_criterion
 from asyncio.windows_events import NULL
 from tqdm import tqdm
 import model.dense as dense
@@ -18,8 +19,9 @@ def load_config(args):
 
 
 def train(train_config, model, dataloader, testloader, device):
-    criterion = torch.nn.CrossEntropyLoss()
-    optimizer = torch.optim.SGD(model.parameters(), lr=0.01, momentum=0.5)
+    learning_rate = float(train_config['leaning_rate'])
+    criterion = build_criterion(train_config['criterion'])
+    optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate, momentum=0.5)
 
     for epoch in range(int(train_config['epoch'])):
         total_loss = 0.0

@@ -12,5 +12,7 @@ dataset:
 
 train:
   epoch: 300
+  leaning_rate: 0.001
   criterion: CE
+  optimizer: SGD
   
