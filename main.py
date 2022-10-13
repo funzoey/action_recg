@@ -17,25 +17,44 @@ def load_config(args):
     return model_conf, data_conf, train_conf
 
 
-def train(train_config, model, dataloader, device):
+def train(train_config, model, dataloader, testloader, device):
     criterion = torch.nn.CrossEntropyLoss()
     optimizer = torch.optim.SGD(model.parameters(), lr=0.01, momentum=0.5)
 
     for epoch in range(int(train_config['epoch'])):
+        total_loss = 0.0
+        model.train()
         for i_batch, img in enumerate(tqdm(dataloader)):
             x, y = img[0].to(device), img[1].to(device)
             optimizer.zero_grad()
-            
+    
             pre = model(x)
             loss = criterion(pre, y)
             loss.backward()
             optimizer.step()
+            
+            total_loss += loss.item()
 
+        best_acc = 0.0
         if epoch % 5 == 0:
-
-            torch.save(model.state_dict(), './weights/dense_ep' + epoch + '.pt')
-
-
+            print('epoch-%d    '%(epoch) + 'total loss:' + str(total_loss))
+            model.eval()
+            acc = 0
+            val_num = 0
+            best_acc = 0
+            with torch.no_gard():
+                for val_data in testloader:
+                    val_images, val_labels = val_data
+                    outputs = model(val_images.to(device))
+                    predict_y = torch.max(outputs, dim=1)[1]
+                    acc += (predict_y == val_labels.to(device)).sum().item()
+                    val_num += val_labels.size(0)
+                val_accurate = acc / val_num
+                if val_accurate > best_acc:
+                    best_acc = val_accurate
+                    torch.save(model.state_dict(), './weights/dense_ep' + epoch + '.pt')
+                print('epoch-%d    '%(epoch) + 'val acc:' + str(val_accurate))
+                
 
 def once_test(model_pth, device, valset):
     model = dense.densenet161(15)
@@ -45,7 +64,7 @@ def once_test(model_pth, device, valset):
     acc = 0
     val_num = 0
     best_acc = 0
-    with torch.no_gard():  # 没有梯度
+    with torch.no_gard():
         for val_data in valset:
             val_images, val_labels = val_data
             outputs = model(val_images.to(device))
@@ -64,7 +83,7 @@ def main(args):
     model = build_model(model_config)
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
     model.to(device)
-    train(train_config, model, imgloader, device)
+    train(train_config, model, imgloader, valset, device)
 
     once_test('./weights/dense_ep95', device, valset)
     
