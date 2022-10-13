@@ -38,8 +38,8 @@ def train(train_config, model, dataloader, testloader, device):
             total_loss += loss.item()
 
         best_acc = 0.0
+        print('epoch-%d    '%(epoch) + 'total loss:' + str(total_loss))
         if epoch % 5 == 0:
-            print('epoch-%d    '%(epoch) + 'total loss:' + str(total_loss))
             model.eval()
             acc = 0
             val_num = 0
