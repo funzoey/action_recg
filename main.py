@@ -32,36 +32,41 @@ def train(train_config, model, dataloader, device):
             optimizer.step()
 
         if epoch % 5 == 0:
+
             torch.save(model.state_dict(), './weights/dense_ep' + epoch + '.pt')
 
 
 
-def test(model_pth, device):
+def once_test(model_pth, device, valset):
     model = dense.densenet161(15)
     model.load_state_dict(torch.load(model_pth))
     model.eval()
-    acc = 0.0
-
-    # with torch.no_gard():  # 没有梯度
-    #     for val_data in validate_loader:
-    #         val_images, val_labels = val_data
-    #         outputs = model(val_images.to(device))
-    #         predict_y = torch.max(outputs, dim=1)[1]
-    #         acc += (predict_y == val_labels.to(device)).sum().item()
-    #     val_accurate = acc / val_num
-    #     if val_accurate > best_acc
-    #         best_acc = val_accurate
-    #         torch.save(net.state_dict(), save_path)
-    #     print('[epoch %d] train_loss: %.3f test_accuracy: %.3f' % (epoch + 1, running_loss / step, val_accurate))
+    model.to(device)
+    acc = 0
+    val_num = 0
+    best_acc = 0
+    with torch.no_gard():  # 没有梯度
+        for val_data in valset:
+            val_images, val_labels = val_data
+            outputs = model(val_images.to(device))
+            predict_y = torch.max(outputs, dim=1)[1]
+            acc += (predict_y == val_labels.to(device)).sum().item()
+            val_num += val_labels.size(0)
+        val_accurate = acc / val_num
+        # if val_accurate > best_acc:
+        #     best_acc = val_accurate
+        print(val_accurate)
 
 
 def main(args):
     model_config, data_config, train_config= load_config(args)
-    imgloader, val = build_dataset(data_config)
+    imgloader, valset = build_dataset(data_config)
     model = build_model(model_config)
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
     model.to(device)
     train(train_config, model, imgloader, device)
+
+    once_test('./weights/dense_ep95', device, valset)
     
         
 
