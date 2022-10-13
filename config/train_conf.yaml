@@ -1,7 +1,8 @@
 model: 
   CNN: 
-    name: resnet50
+    name: dense161
     class_num: 15
+
   encoder:
 
   decoder:
