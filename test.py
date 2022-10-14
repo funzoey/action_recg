@@ -27,7 +27,7 @@ for model_pth in os.listdir(model_Path):
     acc = 0
     val_num = 0
     best_acc = 0
-    with torch.no_gard():  # 没有梯度
+    with torch.no_grad():  
         for val_data in val:
             val_images, val_labels = val_data
             outputs = model(val_images.to(device))
@@ -37,5 +37,5 @@ for model_pth in os.listdir(model_Path):
         val_accurate = acc / val_num
         # if val_accurate > best_acc:
         #     best_acc = val_accurate
-        print(model_Path + '---' + val_accurate)
+        print(model_pth + '---' + val_accurate)
 

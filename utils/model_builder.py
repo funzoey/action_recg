@@ -1,7 +1,7 @@
 from unicodedata import name
 import torch
 import model.Resnet as rs
-import model.dense as dense
+import model.dense_clasifier as dense_clasifier
 def build_model(args):
     CNN = args['CNN']
     if  CNN['name']== '':
@@ -11,4 +11,4 @@ def build_model(args):
         return rs.resnet50(int(CNN['class_num']))
 
     elif CNN['name'] == 'dense161':
-        return dense.densenet161(num_classes = int(CNN['class_num']))
+        return dense_clasifier.densenet161(num_classes = int(CNN['class_num']))
