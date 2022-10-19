@@ -3,7 +3,7 @@ import torch
 from torchvision.datasets import ImageFolder
 from torchvision import transforms,utils
 from torch.utils.data import DataLoader
-import model.dense as dense
+import model.dense_clasifier as dense_clasifier
 
 my_trans = transforms.Compose([
     transforms.Resize((224,224)),
@@ -17,7 +17,7 @@ val = DataLoader(valset, batch_size = 64 , shuffle=False, num_workers=0)
 
 
 model_Path = './weights'
-model = dense.densenet161(15)
+model = dense_clasifier.densenet161(15)
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 model.to(device)
 

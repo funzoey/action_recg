@@ -7,7 +7,9 @@ from utils.model_builder import build_model
 from utils.criterion_builder import build_criterion
 from asyncio.windows_events import NULL
 from tqdm import tqdm
-import model.dense as dense
+import model.dense_clasifier as dense_clasifier
+from torch.utils.tensorboard import SummaryWriter
+writer = SummaryWriter()
 
 def load_config(args):
     with open(args.train_conf, 'r') as f:
@@ -32,6 +34,7 @@ def train(train_config, model, dataloader, testloader, device):
     
             pre = model(x)
             loss = criterion(pre, y)
+            writer.add_scalar("Loss/train", loss, epoch)
             loss.backward()
             optimizer.step()
             
@@ -52,6 +55,7 @@ def train(train_config, model, dataloader, testloader, device):
                     acc += (predict_y == val_labels.to(device)).sum().item()
                     val_num += val_labels.size(0)
                 val_accurate = acc / val_num
+                writer.add_scalar("Acc/test", val_accurate, epoch)
                 if val_accurate > best_acc:
                     best_acc = val_accurate
                     torch.save(model.state_dict(), './weights/dense_ep' + epoch + '.pt')
@@ -59,7 +63,7 @@ def train(train_config, model, dataloader, testloader, device):
                 
 
 def once_test(model_pth, device, valset):
-    model = dense.densenet161(15)
+    model = dense_clasifier.densenet161(15)
     model.load_state_dict(torch.load(model_pth))
     model.eval()
     model.to(device)
