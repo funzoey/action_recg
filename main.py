@@ -11,6 +11,7 @@ import model.dense_clasifier as dense_clasifier
 from torch.utils.tensorboard import SummaryWriter
 writer = SummaryWriter()
 
+
 def load_config(args):
     with open(args.train_conf, 'r') as f:
         config = yaml.safe_load(f)
