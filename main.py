@@ -48,7 +48,7 @@ def train(train_config, model, dataloader, testloader, device):
             acc = 0
             val_num = 0
             best_acc = 0
-            with torch.no_gard():
+            with torch.no_grad():
                 for val_data in testloader:
                     val_images, val_labels = val_data
                     outputs = model(val_images.to(device))
