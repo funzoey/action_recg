@@ -1,14 +1,13 @@
 model: 
   CNN: 
-    name: dense161
+    name: vitb16
     class_num: 15
-
   encoder:
-
   decoder:
 
 dataset:
-  path: ./data/train
+  train_path: ./data/train
+  val_path: ./data/test
 
 train:
   epoch: 300

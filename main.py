@@ -1,16 +1,18 @@
-from pickletools import optimize
+import os
+
 import torch
 import argparse
 import yaml
 from utils.dataset_builder import build_dataset
 from utils.model_builder import build_model
 from utils.criterion_builder import build_criterion
-from asyncio.windows_events import NULL
 from tqdm import tqdm
 import model.dense_clasifier as dense_clasifier
 from torch.utils.tensorboard import SummaryWriter
+
 writer = SummaryWriter()
 
+os.environ['CUDA_VISIBLE_DEVICES'] = '1,0'
 
 def load_config(args):
     with open(args.train_conf, 'r') as f:
@@ -35,19 +37,18 @@ def train(train_config, model, dataloader, testloader, device):
     
             pre = model(x)
             loss = criterion(pre, y)
-            writer.add_scalar("Loss/train", loss, epoch)
             loss.backward()
             optimizer.step()
             
             total_loss += loss.item()
 
         best_acc = 0.0
-        print('epoch-%d    '%(epoch) + 'total loss:' + str(total_loss))
+        writer.add_scalar("Loss/train", total_loss, epoch)
+        print('epoch-%d    ' % (epoch) + 'total loss:' + str(total_loss))
         if epoch % 3 == 0:
             model.eval()
             acc = 0
             val_num = 0
-            best_acc = 0
             with torch.no_grad():
                 for val_data in testloader:
                     val_images, val_labels = val_data
@@ -59,7 +60,7 @@ def train(train_config, model, dataloader, testloader, device):
                 writer.add_scalar("Acc/test", val_accurate, epoch)
                 if val_accurate > best_acc:
                     best_acc = val_accurate
-                    torch.save(model.state_dict(), './weights/dense_ep' + epoch + '.pt')
+                    torch.save(model.module.state_dict(), './weights/dense_ep' + str(epoch) + '.pt')
                 print('epoch-%d    '%(epoch) + 'val acc:' + str(val_accurate))
                 
 
@@ -85,14 +86,14 @@ def once_test(model_pth, device, valset):
 
 
 def main(args):
-    model_config, data_config, train_config= load_config(args)
+    model_config, data_config, train_config = load_config(args)
     imgloader, valset = build_dataset(data_config)
     model = build_model(model_config)
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-    model.to(device)
+    model = torch.nn.DataParallel(model).to(device)
     train(train_config, model, imgloader, valset, device)
 
-    once_test('./weights/dense_ep95', device, valset)
+    # once_test('./weights/dense_ep95', device, valset)
     
         
 
