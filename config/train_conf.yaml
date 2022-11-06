@@ -2,6 +2,7 @@ model:
   CNN: 
     name: vitb16
     class_num: 15
+    pretrain: vit_b_16-c867db91.pth
   encoder:
   decoder:
 
