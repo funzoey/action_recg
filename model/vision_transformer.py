@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 from torchvision.models import vision_transformer
 
+
 class Net(nn.Module):
     def __init__(self, num_classes:int, pretrain):
         super().__init__()
@@ -19,3 +20,6 @@ class Net(nn.Module):
         _1000 = self.vit(x)
         y = self.fc(_1000)
         return y
+
+    def trainable_parameters(self):
+        return [list(self.vit.parameters()), list(self.fc.parameters())]

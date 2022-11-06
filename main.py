@@ -14,6 +14,7 @@ writer = SummaryWriter()
 
 os.environ['CUDA_VISIBLE_DEVICES'] = '1,0'
 
+
 def load_config(args):
     with open(args.train_conf, 'r') as f:
         config = yaml.safe_load(f)
@@ -26,23 +27,25 @@ def load_config(args):
 def train(train_config, model, dataloader, testloader, device):
     learning_rate = float(train_config['leaning_rate'])
     criterion = build_criterion(train_config['criterion'])
-    optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate, momentum=0.5)
+    trainable_parameters = model.module.trainable_parameters()
+    optimizer = torch.optim.SGD(
+        params=[{'params': trainable_parameters[0], 'lr': learning_rate},
+                {'params': trainable_parameters[1], 'lr': 10 * learning_rate}],
+        momentum=0.5)
 
+    best_acc = 0.0
     for epoch in range(int(train_config['epoch'])):
         total_loss = 0.0
         model.train()
         for i_batch, img in enumerate(tqdm(dataloader)):
             x, y = img[0].to(device), img[1].to(device)
             optimizer.zero_grad()
-    
             pre = model(x)
             loss = criterion(pre, y)
             loss.backward()
             optimizer.step()
-            
             total_loss += loss.item()
 
-        best_acc = 0.0
         writer.add_scalar("Loss/train", total_loss, epoch)
         print('epoch-%d    ' % (epoch) + 'total loss:' + str(total_loss))
         if epoch % 3 == 0:
@@ -60,9 +63,9 @@ def train(train_config, model, dataloader, testloader, device):
                 writer.add_scalar("Acc/test", val_accurate, epoch)
                 if val_accurate > best_acc:
                     best_acc = val_accurate
-                    torch.save(model.module.state_dict(), './weights/dense_ep' + str(epoch) + '.pt')
-                print('epoch-%d    '%(epoch) + 'val acc:' + str(val_accurate))
-                
+                    torch.save(model.module.state_dict(), './weights/vit_pretrain' + str(epoch) + '.pt')
+                print('epoch-%d    ' % (epoch) + 'val acc:' + str(val_accurate))
+
 
 def once_test(model_pth, device, valset):
     model = dense_clasifier.densenet161(15)
@@ -94,11 +97,10 @@ def main(args):
     train(train_config, model, imgloader, valset, device)
 
     # once_test('./weights/dense_ep95', device, valset)
-    
-        
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--train_conf', type = str, default='./config/train_conf.yaml')
+    parser.add_argument('--train_conf', type=str, default='./config/train_conf.yaml')
     args = parser.parse_args()
     main(args)
